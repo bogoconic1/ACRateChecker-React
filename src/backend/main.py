@@ -19,6 +19,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+cf_dataframe = None
+cf_duration_dataframe = None
+
 # read json files
 with open("../name2id.json") as j:
     name2id = json.load(j)
@@ -35,6 +38,7 @@ async def root():
 async def get_contest_snapshots(contestName: str):
     #contestID = (await request.json()).values()[0]
     #return contestID
+    global cf_dataframe, cf_duration_dataframe
     if contestName not in name2id:
         return "Invalid contest name"
     contest = name2id[contestName]
@@ -91,18 +95,19 @@ async def get_contest_snapshots(contestName: str):
 @app.get("/get_verdicts")
 async def get_verdicts(contestName: str, selected_problem: str, selected_language: str):
     
+    global cf_dataframe, cf_duration_dataframe
     if contestName not in name2id:
         return "Invalid contest name"
     contest = name2id[contestName]
     
-    page = "https://codeforces.com/api/contest.status?contestId=" + str(contest) + "&from=1"
-    cf_submissions_api = requests.get(page)
-    submissions = cf_submissions_api.json()
-    cf_dataframe = pd.json_normalize(submissions,['result'])
+    #page = "https://codeforces.com/api/contest.status?contestId=" + str(contest) + "&from=1"
+    #cf_submissions_api = requests.get(page)
+    #submissions = cf_submissions_api.json()
+    #cf_dataframe = pd.json_normalize(submissions,['result'])
     
-    cf_duration_api = requests.get("https://codeforces.com/api/contest.list?gym=false")
-    contests = cf_duration_api.json()
-    cf_duration_dataframe = pd.json_normalize(contests,['result'])
+    #cf_duration_api = requests.get("https://codeforces.com/api/contest.list?gym=false")
+    #contests = cf_duration_api.json()
+    #cf_duration_dataframe = pd.json_normalize(contests,['result'])
     
     selected_contest = cf_duration_dataframe.loc[cf_duration_dataframe["id"] == int(contest)]
     start_time = list(selected_contest["startTimeSeconds"])[0]
